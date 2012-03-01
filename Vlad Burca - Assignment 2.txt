@@ -1,0 +1,199 @@
+#
+# Author: Vlad Burca
+# Date: 09/20/2011
+# Assignment #2
+#
+
+
+==========================================================
+
+
+# 1.12
+
+(define (pascal-element row col)
+  (cond 
+    ((> col row) 0)
+    ((or
+    (= row 1)
+    (= col 1)
+    (= row col)) 1)
+    (else (+ 
+           (pascal-element (- row 1) col) 
+           (pascal-element (- row 1) (- col 1))
+           )
+          )
+    )
+  )
+
+
+==========================================================
+
+
+# 1.15
+
+    a. The procedure p is evaluated 5 times - it starts getting 
+	evaluated when abs(angle) <= 0.1. Therefore, going up on
+	recursive stack, p will be evaluated 5 times since 12.15
+	requires 5 divisions by 3 in order for its value to get
+	<= 0.1 .
+
+
+    b. The sine procedure generates a linear recursion. Therefore, 
+	the number of steps and the order of growth in space have 
+	the same value; they are both equal to Theta(log a).
+	Since at each run we divide a by 3, the number
+	of steps is a function of log a.
+
+
+==========================================================
+
+
+# 1.30
+
+(define (sumi term a next b)
+ (define (iter a result)
+   (if (> a b)
+       result
+       (iter (next a) (+ (term a) result))))
+ (iter a 0))
+
+
+==========================================================
+
+
+# 1.31
+
+(define (product term a next b)
+ (if (> a b)
+     1
+     (* (term a)
+        (product term (next a) next b))))
+
+(define (prodi term a next b)
+ (define (iter a result)
+   (if (> a b)
+       result
+       (iter (next a) (* (term a) result))))
+ (iter a 1))
+
+(define (factorial n) 
+  (product (lambda (x) x) 1 (lambda (x) (+ 1 x)) n)
+  )
+
+(define (pi terms)
+  (* 4 (product
+        (lambda (x) (if (= x 2) 
+                        (/ 2 3)
+                        (/ (* x x) (* (- x 1) (+ x 1)))
+                        ))
+        2.0 
+        (lambda (x) (+ x 2)) 
+        terms
+        )
+     )
+  )
+
+
+==========================================================
+
+
+# 1.32
+
+(define (accumulate combiner null-value term a next b)
+  (if (> a b)
+      null-value
+      (combiner (term a)
+         (accumulate combiner null-value term (next a) next b))))
+
+(define (accui combiner null-value term a next b)
+  (define (iter a result)
+    (if (> a b)
+        result
+        (iter (next a) (combiner (term a) result))))
+  (iter a null-value))
+
+(define (accumulate-sum term a next b)
+  (accumulate + 0 term a next b)
+  )
+
+(define (accumulate-product term a next b)
+  (accumulate * 1 term a next b)
+  )
+
+==========================================================
+
+
+# 1.43
+
+(define (compose m n)
+  (lambda (x) (m (n x)))
+  )
+
+(define (repeated f n)
+  (if (= n 1)
+      f
+      (compose f (repeated f (- n 1)))
+      )
+  )
+
+
+==========================================================
+
+
+# 2.5
+
+(define (pow x y)
+  (if (= y 0)
+      1
+      (* x (pow x (- y 1)))
+      )
+  )
+
+(define (cons a b)
+  (* (pow 2 a) (pow 3 b))
+  )
+
+(define (car l)
+  (if (not (= (modulo l 2) 0))
+      0
+      (+ 1 (car (/ l 2)))
+      )
+  )
+
+(define (cdr l)
+  (if (not (= (modulo l 3) 0))
+      0
+      (+ 1 (cdr (/ l 3)))
+      )
+
+
+==========================================================
+
+
+# 2.18
+
+(define (reverse l)
+  (if (= (length l) 1)
+      l
+      (append (reverse (cdr l)) (list (car l)))
+      )
+  )
+
+
+==========================================================
+
+
+# 2.20
+
+(define (same-parity x . y)
+  (if (= (length y) 0) 
+      (list x)
+      (if (= (modulo x 2) (modulo (car y) 2))
+          (append (list x) (apply same-parity y))
+          (apply same-parity (append (list x) (cdr y)))
+          )
+      )
+  )
+
+
+==========================================================

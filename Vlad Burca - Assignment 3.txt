@@ -1,0 +1,155 @@
+#
+# Author: Vlad Burca
+# Date: 09/29/2011
+# Assignment #3
+#
+
+
+==========================================================
+
+
+; 2.21
+(define (square-list items)
+  (if (null? items)
+      '()
+      (cons (* (car items) (car items)) (square-list (cdr items)) ))
+  )
+
+(define (square-list items)
+  (map (lambda (x) (* x x)) items)
+  )
+
+==========================================================
+
+; 2.22
+; The cons receives the current element and the list of the previous
+; square. Therefore, it will construct the list of element i with 
+; the squares of elements i-1, i-2, ... 1. That's why the list of 
+; squares is reversed.
+
+; On the second version of square-list, he is trying to construct
+; a new list by appending a list to an element. Therefore, in the end
+; he will get a list of lists (even though they are in the right order
+; this time, since the list of previous squares is being appended to
+; the current element).
+
+(define (square-list items)
+  (define (iter things answer)
+    (if (null? things)
+        answer
+        (iter (cdr things) (cons answer 
+                                 (* (car things) (car things))))
+        )
+    )
+  (iter items '())
+  )
+
+==========================================================
+
+; 2.24
+		 ---------   ---------
+(1 (2 (3 4))) -> |   | --|-> |   | / |
+                 ---------   ---------
+		   |	       |
+		   V           V
+		   1         ---------   ---------
+			     |   | --|-> |   | / |
+			     ---------   ---------
+			       |           |
+                               V           V
+                               2         ---------   ---------
+					 |   | --|-> |   | / |
+                                         ---------   ---------
+					   |           |
+                                           V           V
+					   3           4
+
+    (1 (2 (3 4)))
+	/ \
+       /   \
+      1    (2 (3 4))
+             / \
+            /   \
+	   2     (3 4)
+                  / \
+                 /   \
+                3     4
+ 
+==========================================================
+
+; 2.32
+; The procedure will go to the last element of s, and esentially 
+; start with the set containing the empty set. After that, going 
+; back on the recursive stack, it will add the first element of 
+; the partition of s (given by the recursive process) to each 
+; element of the set 'rest' (where each element of it will be a 
+; set). Example of running:
+; (subsets (list 1 2))
+; -> rest = subsets((2))  -- s = (1 2)
+; -> rest = subsets(())   -- s = (2)
+; -> return (()) => go back 1 step on recursive stack
+; -> rest = (()) => append => rest = (() (2))  -- since (car s) = 2
+;      => go back 1 step on recursive stack
+; -> rest = (() (2)) => append => rest = (() (2) (1) (1 2)) --
+;      since (car s) = 1, and because it appended 1 to each element
+;      of rest. => go back 1 step on recursive stack
+; -> stop. => restul = (() (2) (1) (1 2))
+
+(define (subsets s)
+  (if (null? s)
+      (list '())
+      (let ((rest (subsets (cdr s))))
+        (append rest (map (lambda (x) (cons (car s) x)) rest)))
+      )
+  )
+
+==========================================================
+
+; 2.36
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))
+      )
+  )
+
+(define (accumulate-n op init seqs)
+  (if (null? (car seqs))
+      '()
+      (cons (accumulate op init (map car seqs))
+            (accumulate-n op init (map cdr seqs)))
+      )
+  )
+
+==========================================================
+
+; 2.37
+(define (dot-product v w)
+  (accumulate + 0 (map * v w))
+  )
+
+(define (matrix-*-vector m v)
+  (map (lambda (x) (dot-product x v)) m)
+  )
+
+(define (transpose mat)
+  (accumulate-n cons '() mat)
+  )
+
+(define (matrix-*-matrix m n)
+  (let ((cols (transpose n)))
+    (map (lambda (x) (matrix-*-vector cols x)) m)
+    )
+  )
+
+==========================================================
+
+; 2.54
+(define (equal? a b)
+  (cond ((and (not (pair? a)) (not (pair? b))) (eq? a b))
+        ((and (pair? a) (pair? b)) (and (equal? (car a) (car b))
+                                       (equal? (cdr a) (cdr b))))
+        (else #f)
+        )
+  )

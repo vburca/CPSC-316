@@ -1,0 +1,292 @@
+prerequisites(Course,Prerequisites) :-
+  findall((Prerequisite,Grade),
+	  prereq(Course,Prerequisite,Grade),
+	  Prerequisites).
+
+eligibleToTake(Student,Course) :- 
+        course(Course),
+        prerequisites(Course,Prerequisites),
+        passedAll(Student,Prerequisites).
+
+passedAll(_,[]).
+passedAll(Student,[(Prerequisite,RequiredGrade)|More]) :- 
+        taken(Student,Prerequisite,_,Grade),
+        (betterthan(Grade,RequiredGrade); Grade = RequiredGrade),
+        passedAll(Student,More).
+
+grade(f).
+grade(dminus).
+grade(d).
+grade(dplus).
+grade(cminus).
+grade(c).
+grade(cplus).
+grade(bminus).
+grade(b).
+grade(bplus).
+grade(aminus).
+grade(a).
+grade(aplus).
+
+betterthanb(dminus,f).
+betterthanb(d,dminus).
+betterthanb(dplus,d).
+betterthanb(cminus,dplus).
+betterthanb(c,cminus).
+betterthanb(cplus,c).
+betterthanb(bminus,cplus).
+betterthanb(b,bminus).
+betterthanb(bplus,b).
+betterthanb(aminus,bplus).
+betterthanb(a,aminus).
+betterthanb(aplus,a).
+
+betterthan(X,Y) :- grade(X), grade(Y), betterthanb(X,Y).
+betterthan(X,Y) :- grade(X), grade(Y), grade(Z), betterthanb(X,Z), betterthan(Z,Y).
+
+% satisfied_prerequisite(Student,Prerequisite,Grade).
+satisfied_prerequisite(Student,Prerequisite,Grade) :- grade(Grade),
+	taken(Student,Prerequisite,ActualGrade),
+	(betterthan(ActualGrade,Grade); ActualGrade=Grade).
+% satisfied_prerequisites(Student,Prerequisites) is true if the student has
+% satisfied the list of prerequisites
+satisfied_prerequisites(_,[]).
+satisfied_prerequisites(Student,[(Prerequisite,Grade)|OtherPrerequisites]) :- 
+	satisfied_prerequisite(Student,Prerequisite,Grade),
+	satisfied_prerequisites(Student,OtherPrerequisites).
+
+% satisfiedBS(Student)
+satisfiedBS(Student) :- 
+        satisfiedFoundation(Student),
+        satisfiedBreadth(Student,SystemsCourse,TheoryCourse,SoftwareCourse),
+        satisfiedBSElectives(Student,SystemsCourse,TheoryCourse,SoftwareCourse),
+        satisfiedSeniorExercise(Student),
+        satisfiedBSMath(Student).
+
+satisfiedBA(Student) :-
+        satisfiedFoundation(Student),
+        satisfiedBreadth(Student,SystemsCourse,TheoryCourse,SoftwareCourse),
+        satisfiedBAElectives(Student,SystemsCourse,TheoryCourse,SoftwareCourse),
+        satisfiedSeniorExercise(Student),
+        satisfiedBAMath(Student),
+        satisfiedBACognate(Student).
+
+satisfiedFoundation(Student) :-
+        passedWithCMinus(Student, cpsc115l),
+        passedWithCMinus(Student, cpsc215l),
+        passedWithCMinus(Student, cpsc203),
+        passedWithCMinus(Student, cpsc275l).
+
+satisfiedBreadth(Student,SystemsCourse,TheoryCourse,SoftwareCourse) :-
+        satisfiedSystems(Student, SystemsCourse),
+        satisfiedTheory(Student, TheoryCourse),
+        satisfiedSoftware(Student, SoftwareCourse).
+
+satisfiedBSElectives(Student,SystemsCourse,TheoryCourse,SoftwareCourse) :-
+        designatedElective(X), designatedElective(Y), designatedElective(Z),
+        X \= Y, X \= Z, Y \= Z, 
+        X \= SystemsCourse, X \= TheoryCourse, X \= SoftwareCourse,
+        Y \= SystemsCourse, Y \= TheoryCourse, Y \= SoftwareCourse,
+        Z \= SystemsCourse, Z \= TheoryCourse, Z \= SoftwareCourse,
+        Y \= cpsc110, Z \= cpsc110,
+        \+ externalDesignatedElective(X), \+ externalDesignatedElective(Z),
+        passedWithCMinus(Student, X),
+        passedWithCMinus(Student, Y),
+        passedWithCMinus(Student, Z).
+
+satisfiedBAElectives(Student,SystemsCourse,TheoryCourse,SoftwareCourse) :-
+        designatedElective(X), designatedElective(Y),
+        X \= Y,
+        X \= SystemsCourse, X \= TheoryCourse, X \= SoftwareCourse,
+        Y \= SystemsCourse, Y \= TheoryCourse, Y \= SoftwareCourse,
+        Y \= cpsc110,
+        \+ externalDesignatedElective(X),
+        passedWithCMinus(Student, X),
+        passedWithCMinus(Student, Y).
+
+satisfiedSeniorExercise(Student) :-
+        passedWithCMinus(Student, cpsc403),
+        passedWithCMinus(Student, cpsc404),
+        passedWithCMinus(Student, cpsc498),
+        passedWithCMinus(Student, cpsc499).
+
+satisfiedBSMath(Student) :-
+        (passedWithCMinus(Student,math131); 
+            (passedWithCMinus(Student,math125),
+            passedWithCMinus(Student,math126))),
+        (passedWithCMinus(Student,math132);
+            passedWithCMinus(Student,math142)).
+
+satisfiedBAMath(Student) :-
+        (passedWithCMinus(Student,math131); 
+            (passedWithCMinus(Student,math125),
+            passedWithCMinus(Student,math126))).
+
+satisfiedBACognate(Student) :- 
+        passedWithCMinus(Student,X), writingIntensive(X),
+        passedWithCMinus(Student,Y), numericOrSymbolicReasoning(Y).
+
+satisfiedSystems(Student, cpsc315) :- passedWithCMinus(Student, cpsc315).
+satisfiedSystems(Student, cpsc333) :- passedWithCMinus(Student, cpsc333).
+satisfiedSystems(Student, cpsc375) :- passedWithCMinus(Student, cpsc375).
+
+satisfiedTheory(Student, cpsc219) :- passedWithCMinus(Student, cpsc219).
+satisfiedTheory(Student, cpsc320) :- passedWithCMinus(Student, cpsc320).
+
+satisfiedSoftware(Student, cpsc304) :- passedWithCMinus(Student, cpsc304).
+satisfiedSoftware(Student, cpsc316) :- passedWithCMinus(Student, cpsc316).
+satisfiedSoftware(Student, cpsc340) :- passedWithCMinus(Student, cpsc340).
+satisfiedSoftware(Student, cpsc352) :- passedWithCMinus(Student, cpsc352).
+satisfiedSoftware(Student, cpsc371) :- passedWithCMinus(Student, cpsc371).
+satisfiedSoftware(Student, cpsc372) :- passedWithCMinus(Student, cpsc372).
+
+designatedElective(cpsc110).
+% designatedElective(cpsc115l).
+% designatedElective(cpsc203).
+% designatedElective(cpsc215l).
+designatedElective(cpsc219).
+% designatedElective(cpsc275l).
+designatedElective(cpsc304).
+designatedElective(cpsc315).
+designatedElective(cpsc316).
+designatedElective(cpsc320).
+designatedElective(cpsc333).
+designatedElective(cpsc340).
+designatedElective(cpsc352).
+designatedElective(cpsc365).
+designatedElective(cpsc371).
+designatedElective(cpsc372).
+designatedElective(cpsc375).
+designatedElective(cpsc399).
+designatedElective(Course) :- externalDesignatedElective(Course).
+
+externalDesignatedElective(engr221l).
+externalDesignatedElective(engr323l).
+externalDesignatedElective(math228).
+externalDesignatedElective(math252).
+externalDesignatedElective(math254).
+externalDesignatedElective(math305).
+externalDesignatedElective(math309).
+externalDesignatedElective(math314).
+
+gradSchoolPrep(Student) :-
+        passedWithCMinus(Student,cpsc219),
+        passedWithCMinus(Student,cpsc315),
+        passedWithCMinus(Student,cpsc316),
+        passedWithCMinus(Student,cpsc320),
+        passedWithCMinus(Student,math228).
+
+passedWithCMinus(Student,Course) :-
+        taken(Student, Course, _, Grade),
+        (betterthan(Grade,cminus); Grade = cminus).
+
+% taken(Student, Course, Semester, Grade).
+% taken(john,cpsc115l,fall2011,a).
+taken(john,cpsc215l,spring2012,a).
+taken(john,cpsc203,spring2012,a).
+taken(john,cpsc275l,fall2012,a).
+taken(john,cpsc333,spring2013,a).
+taken(john,cpsc219,spring2013,a).
+taken(john,cpsc316,fall2014,a).
+taken(john,cpsc371,spring2015,a).
+taken(john,cpsc372,spring2015,a).
+taken(john,math228,fall2012,a).
+taken(john,cpsc403,fall2014,a).
+taken(john,cpsc404,spring2015,a).
+taken(john,cpsc498,fall2014,a).
+taken(john,cpsc499,spring2015,a).
+taken(john,math131,fall2011,a).
+taken(john,math132,spring2012,a).
+taken(john,cpsc315,spring2013,a).
+taken(john,cpsc320,fall2014,a).
+taken(john,engl205,fall2014,a).
+taken(john,psyc221l,fall2014,a).
+
+%% writeBSMissing(Student)
+writeBSMissing(Student) :-
+        (writeMissingFoundation(Student),!; write('Foundations not satisfied')),
+        (writeMissingBreadth(Student,SystemsCourse,TheoryCourse,SoftwareCourse),!;
+            write('Breadth not satisfied'),nl),
+        (satisfiedBSElectives(Student,SystemsCourse,TheoryCourse,SoftwareCourse),!;
+            write('BS Electives not satisfied'),nl),
+        (writeMissingSeniorExercise(Student),!;
+            write('Senior Exercise not satisfied'),nl),
+        (writeMissingBSMath(Student),!;
+            write('Math not satisfied.'),nl).
+
+writeBAMissing(Student) :-
+        (writeMissingFoundation(Student),!; write('Foundations not satisfied')),
+        (writeMissingBreadth(Student,SystemsCourse,TheoryCourse,SoftwareCourse),!;
+            write('Breadth not satisfied'),nl),
+        (satisfiedBAElectives(Student,SystemsCourse,TheoryCourse,SoftwareCourse),!;
+            write('BA Electives not satisfied'),nl),
+        (writeMissingSeniorExercise(Student),!;
+            write('Senior Exercise not satisfied'),nl),
+        (writeMissingBAMath(Student),!;
+            write('Math not satisfied.'),nl),
+        (writeMissingBACognate(Student),!;
+            write('BA Cognates not satisfied.'),nl).
+
+writeMissingFoundation(Student) :-
+        (passedWithCMinus(Student, cpsc115l),!; write('Missing CPSC 115L'),nl,fail),
+        (passedWithCMinus(Student, cpsc215l),!; write('Missing CPSC 215L'),nl,fail),
+        (passedWithCMinus(Student, cpsc203),!; write('Missing CPSC 203'),nl,fail),
+        (passedWithCMinus(Student, cpsc275l),!; write('Missing CPSC 275L'),nl,fail).
+
+writeMissingBreadth(Student,SystemsCourse,TheoryCourse,SoftwareCourse) :-
+        (satisfiedSystems(Student, SystemsCourse),!;
+            write('Missing Systems course'),nl),
+        (satisfiedTheory(Student, TheoryCourse),!;
+            write('Missing Theory course'),nl),
+        (satisfiedSoftware(Student, SoftwareCourse),!;
+            write('Missing Software course'),nl).
+
+writeMissingSeniorExercise(Student) :-
+        (passedWithCMinus(Student, cpsc403),!;
+            write('Missing CPSC 403'),nl),
+        (passedWithCMinus(Student, cpsc404),!;
+            write('Missing CPSC 404'),nl),
+        (passedWithCMinus(Student, cpsc498),!;
+            write('Missing CPSC 498'),nl),
+        (passedWithCMinus(Student, cpsc499),!;
+            write('Missing CPSC 499'),nl).
+
+writeMissingBSMath(Student) :-
+        ((passedWithCMinus(Student,math131); 
+            (passedWithCMinus(Student,math125),
+            passedWithCMinus(Student,math126))),!;
+            write('Missing Calculus I'),nl),
+        ((passedWithCMinus(Student,math132);
+            passedWithCMinus(Student,math142)),!;
+            write('Missing Calculus II'),nl).
+
+writeMissingBAMath(Student) :-
+        ((passedWithCMinus(Student,math131); 
+            (passedWithCMinus(Student,math125),
+            passedWithCMinus(Student,math126))),!;
+            write('Missing Calculus I'),nl).
+
+writeMissingBACognate(Student) :- 
+        (passedWithCMinus(Student,X), writingIntensive(X),!;
+            write('Missing non-computer science writing intensive'),nl),
+        (passedWithCMinus(Student,Y), numericOrSymbolicReasoning(Y),!;
+            write('Missing additional numeric or symbolic reasoning course'),nl).
+
+writeMissingBACognate(Student) :- 
+        (passedWithCMinus(Student,X), writingIntensive(X),!;
+            write('Missing writing intensive course'),nl),
+        (passedWithCMinus(Student,Y), numericOrSymbolicReasoning(Y),!;
+            write('Missing numeric or symbolic reasoning course'), nl).
+
+writeMissingGradSchoolPrep(Student) :-
+        (passedWithCMinus(Student,cpsc219),!;write('Missing CPSC 219'),nl),
+        (passedWithCMinus(Student,cpsc315),!;write('Missing CPSC 315'),nl),
+        (passedWithCMinus(Student,cpsc316),!;write('Missing CPSC 316'),nl),
+        (passedWithCMinus(Student,cpsc320),!;write('Missing CPSC 320'),nl),
+        (passedWithCMinus(Student,math228),!;write('Missing MATH 228'),nl).
+
+writingIntensive(engl205).
+numericOrSymbolicReasoning(pols241).
+numericOrSymbolicReasoning(psyc221l).
+numericOrSymbolicReasoning(socl201l).
+numericOrSymbolicReasoning(phil390).

@@ -1,0 +1,12 @@
+temp :- read(X),write(X),nl.
+
+% isMember(E,L) is satisfied if E is in L.
+isMember(E,[E|_]):- !.
+isMember(E,[F|L1]) :- isMember(E,L1),!.
+
+isMem(E,[F|L1]) :- E = F, !.
+isMem(E,[F|L1]) :- E \= F, isMem(E,L1).
+
+isMemOne(E,[F|L1]) :- E = F, !; E \= F, isMemOne(E,L1).
+
+isMemIf(E,[F|L1]) :- E = F -> true; isMemIf(E,L1).
