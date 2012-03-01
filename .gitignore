@@ -1,0 +1,4 @@
+# Ignore text files.
+*.txt
+# Ignore archives or objects.
+*.[oa]
